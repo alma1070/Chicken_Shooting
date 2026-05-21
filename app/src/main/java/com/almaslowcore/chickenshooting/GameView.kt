@@ -25,6 +25,16 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     private var opponentBaseSpeed = 5f
     private var firingObjectBaseSpeed = 20f
 
+    // >>>ex1>>>
+    private var highScore: Int = 0
+    private val sharedPreferences = context.getSharedPreferences("ChickenShootingPrefs", Context.MODE_PRIVATE)
+
+    private val highScorePaint: Paint = Paint().apply {
+        color = Color.YELLOW
+        textSize = 50f
+        textAlign = Paint.Align.RIGHT
+    }
+    // <<<ex1<<<
     private val scorePaint: Paint = Paint().apply {
         color = Color.WHITE
         textSize = 50f
@@ -46,6 +56,9 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     init {
         holder.addCallback(this)
         thread = GameThread(holder, this)
+        // >>>ex1>>>
+        highScore = sharedPreferences.getInt("highScore", 0)
+        // <<<ex1<<<
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -110,6 +123,14 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         for (opponent in opponents) {
             if (opponent.y + opponent.height >= height - 100) {
                 gameOver = true
+
+                // >>>ex1>>>
+                if (score > highScore) {
+                    highScore = score
+                    // save to permanent storage
+                    sharedPreferences.edit().putInt("highScore", highScore).apply()
+                }
+                // <<<ex1<<<
                 break
             }
         }
@@ -136,6 +157,10 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         // Draw other elements like firing objects and score
         firingObjects.forEach { it.draw(canvas) }
         canvas.drawText("Score: $score", 50f, 100f, scorePaint)
+
+        // >>>ex1>>> Draw high score
+        canvas.drawText("High Score: $highScore", width - 50f, 100f, highScorePaint)
+        // <<<ex1<<<
 
         if (gameOver) {
             canvas.drawText("Game Over", width / 2f - 200f, height / 2f, gameOverPaint)
