@@ -28,7 +28,13 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     // >>>ex1>>>
     private var highScore: Int = 0
     private val sharedPreferences = context.getSharedPreferences("ChickenShootingPrefs", Context.MODE_PRIVATE)
+    // <<<ex1<<<
 
+    // >>>ex2>>>
+    private var lives = 3
+    // <<<ex2<<<
+
+    // >>>ex1>>>
     private val highScorePaint: Paint = Paint().apply {
         color = Color.YELLOW
         textSize = 50f
@@ -44,6 +50,15 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         color = Color.RED
         textSize = 100f
     }
+
+    // >>>ex2>>>
+    private val livesPaint = Paint().apply {
+        color = Color.RED
+        textSize = 50f
+        isFakeBoldText = true
+        textAlign = Paint.Align.RIGHT
+    }
+    // <<<ex2<<<
 
     // List of opponent bitmaps
     private val opponentBitmaps: List<Bitmap> = listOf(
@@ -120,19 +135,32 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
             }
         }
 
-        for (opponent in opponents) {
-            if (opponent.y + opponent.height >= height - 100) {
-                gameOver = true
+        // >>>ex2>>>
+        val iterator = opponents.iterator()
+        while (iterator.hasNext()) {
+            val opponent = iterator.next()
+            opponent.update()
 
-                // >>>ex1>>>
-                if (score > highScore) {
-                    highScore = score
-                    // save to permanent storage
-                    sharedPreferences.edit().putInt("highScore", highScore).apply()
+            if (opponent.y + opponent.height >= height - 100) {
+                lives--
+
+                if (lives <= 0) {
+                    gameOver = true
+                    // >>>ex1>>>
+                    if (score > highScore) {
+                        highScore = score
+                        // save to permanent storage
+                        sharedPreferences.edit().putInt("highScore", highScore).apply()
+                    }
+                    // <<<ex1<<<
+                } else {
+                    iterator.remove()
                 }
-                // <<<ex1<<<
                 break
             }
+        }
+        for (opponent in opponents) {
+
         }
 
         if (Random.nextFloat() < 0.02) {
@@ -161,6 +189,11 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         // >>>ex1>>> Draw high score
         canvas.drawText("High Score: $highScore", width - 50f, 100f, highScorePaint)
         // <<<ex1<<<
+
+        // >>>ex2>>>
+        val livesText = "Lives: $lives"
+        canvas.drawText(livesText, width - 50f, 150f, livesPaint)
+        // <<<ex2<<<
 
         if (gameOver) {
             canvas.drawText("Game Over", width / 2f - 200f, height / 2f, gameOverPaint)
@@ -194,6 +227,10 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
 
     private fun resetGame() {
         score = 0
+        // >>>ex2>>>
+        lives = 3
+        // <<<ex2<<<
+        // Reset the speed of opponents and firing objects
         opponentBaseSpeed = 5f
         firingObjectBaseSpeed = 20f
         synchronized(this) {
