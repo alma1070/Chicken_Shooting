@@ -42,6 +42,10 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     private val spaceshipHeight = 150
     // <<<ex3<<<
 
+    // >>>ex4>>>
+    private var upgradeLevel = 1
+    // <<<ex4<<<
+
     // >>>ex1>>>
     private val highScorePaint: Paint = Paint().apply {
         color = Color.YELLOW
@@ -244,14 +248,33 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
             if (spaceshipY < 0) spaceshipY = 0f
             if (spaceshipY > height - spaceshipHeight) spaceshipY = (height - spaceshipHeight).toFloat()
 
-            // Create a bullet originating from the front-center of the spaceship
-            val bulletX = spaceshipX + (spaceshipWidth / 2f)
-            val bulletY = spaceshipY
-            // <<<ex3<<<
-            val firingObject = FiringObject(bulletX, bulletY, firingObjectBaseSpeed)
-            synchronized(this) {
-                firingObjects.add(firingObject)
+            // >>>ex4>>
+            checkUpgrades()
+
+            val bulletsToFire = upgradeLevel
+            val spacing = 40f // Horizontal distance between parallel bullets
+
+            for (i in 0 until bulletsToFire) {
+                // This formula centers the group of bullets on the spaceship
+                // Example Level 3: i=0 offset=-40, i=1 offset=0, i=2 offset=40
+                val horizontalOffset = (i - (bulletsToFire - 1) / 2f) * spacing
+
+                val bulletX = spaceshipX + (spaceshipWidth / 2f) + horizontalOffset
+                val bulletY = spaceshipY
+
+                val driftPower = 2f
+                val vx = (horizontalOffset / spacing) * driftPower
+
+                val firingObject = FiringObject(bulletX, bulletY, firingObjectBaseSpeed, vx)
+
+                synchronized(this) {
+                    firingObjects.add(firingObject)
+                }
             }
+
+
+            // <<<ex4<<<
+
             return true
         }
         return super.onTouchEvent(event)
@@ -271,4 +294,11 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         }
         gameOver = false
     }
+
+    // >>>ex4>>>
+    private fun checkUpgrades() {
+        upgradeLevel = (score / 500) + 1
+        if (upgradeLevel > 5) upgradeLevel = 5 // Cap it at 5 for performance
+    }
+    // <<<ex4<<<
 }

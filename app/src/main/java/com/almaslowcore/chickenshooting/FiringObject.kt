@@ -5,7 +5,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 
-class FiringObject(var x: Float, var y: Float, var speed: Float) {
+class FiringObject(var x: Float, var y: Float, var speed: Float, val vx: Float = 0f) {
     private val paint: Paint = Paint()
     val width: Float = 20f
     val height: Float = 40f
@@ -18,6 +18,8 @@ class FiringObject(var x: Float, var y: Float, var speed: Float) {
 
     fun update() {
         y -= speed
+        x += vx
+
         rect.set(x, y, x + width, y + height)
     }
 
