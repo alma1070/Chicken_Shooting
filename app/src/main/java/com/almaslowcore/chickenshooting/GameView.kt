@@ -143,8 +143,11 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
             for (opponent in opponentsCopy) {
                 if (firingObject.rect.intersect(opponent.getRect())) {
                     firingObjects.remove(firingObject)
-                    opponents.remove(opponent)
-                    score += 10
+                    opponent.currentHealth -= 1
+                    if (opponent.currentHealth <= 0) {
+                        opponents.remove(opponent)
+                        score += 10
+                    }
                     break
                 }
             }
@@ -183,7 +186,14 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
             if (randomBitmap != null) {
                 // Resize the bitmap if needed
                 val resizedBitmap = Bitmap.createScaledBitmap(randomBitmap, 100, 100, false)
-                val opponent = Opponent(Random.nextFloat() * (width - 80), -80f, opponentBaseSpeed, resizedBitmap)
+                val health = (1..5).random()
+                val opponent = Opponent(
+                    Random.nextFloat() * (width - 100),
+                    -100f,
+                    opponentBaseSpeed,
+                    resizedBitmap,
+                    maxHealth = health
+                )
                 opponents.add(opponent)
             }
         }
