@@ -34,6 +34,14 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
     private var lives = 3
     // <<<ex2<<<
 
+    // >>>ex3>>>
+    private var spaceshipBitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.spaceship)
+    private var spaceshipX = 0f
+    private var spaceshipY = 0f
+    private val spaceshipWidth = 150
+    private val spaceshipHeight = 150
+    // <<<ex3<<<
+
     // >>>ex1>>>
     private val highScorePaint: Paint = Paint().apply {
         color = Color.YELLOW
@@ -74,6 +82,9 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         // >>>ex1>>>
         highScore = sharedPreferences.getInt("highScore", 0)
         // <<<ex1<<<
+
+        // >>>ex3>>>
+        spaceshipBitmap = Bitmap.createScaledBitmap(spaceshipBitmap, spaceshipWidth, spaceshipHeight, false)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -179,6 +190,10 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
         super.draw(canvas)
         drawBackground(canvas)
 
+        //>>>ex3>>>
+        canvas.drawBitmap(spaceshipBitmap, spaceshipX, spaceshipY, null)
+        //<<<ex3<<<
+
         // Draw custom images for opponents
         opponents.forEach { it.draw(canvas) }
 
@@ -215,8 +230,25 @@ class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(cont
             return super.onTouchEvent(event)
         }
 
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            val firingObject = FiringObject(event.x, height - 100f, firingObjectBaseSpeed)
+        if (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_DOWN) {
+            // >>>ex3>>>
+            // Update spaceship position so it is centered under the finger
+            spaceshipX = event.x - (spaceshipWidth / 2f)
+            spaceshipY = event.y - (spaceshipHeight / 2f)
+
+            // Keep spaceship within screen boundaries (Left/Right)
+            if (spaceshipX < 0) spaceshipX = 0f
+            if (spaceshipX > width - spaceshipWidth) spaceshipX = (width - spaceshipWidth).toFloat()
+
+            // Keep spaceship within screen boundaries (Top/Bottom)
+            if (spaceshipY < 0) spaceshipY = 0f
+            if (spaceshipY > height - spaceshipHeight) spaceshipY = (height - spaceshipHeight).toFloat()
+
+            // Create a bullet originating from the front-center of the spaceship
+            val bulletX = spaceshipX + (spaceshipWidth / 2f)
+            val bulletY = spaceshipY
+            // <<<ex3<<<
+            val firingObject = FiringObject(bulletX, bulletY, firingObjectBaseSpeed)
             synchronized(this) {
                 firingObjects.add(firingObject)
             }
